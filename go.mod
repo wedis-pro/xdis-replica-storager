@@ -5,9 +5,10 @@ go 1.20
 require (
 	github.com/cloudwego/kitex v0.6.1
 	github.com/golang/snappy v0.0.4
-	github.com/weedge/pkg v0.0.0-20230717110850-134cc8eb3429
-	github.com/weedge/xdis-standalone v0.0.0-20230717150001-27dcacfe4e49
-	github.com/weedge/xdis-storager v0.0.0-20230716163005-0f715142716d
+	github.com/tidwall/redcon v1.6.2
+	github.com/weedge/pkg v0.0.0-20230718170023-2f35239a117a
+	github.com/weedge/xdis-standalone v0.0.0-20230718170242-4c70f879756d
+	github.com/weedge/xdis-storager v0.0.0-20230718094648-3e4c279a950c
 )
 
 require (
@@ -19,7 +20,6 @@ require (
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tidwall/btree v1.6.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
-	github.com/tidwall/redcon v1.6.2 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
@@ -29,3 +29,9 @@ require (
 
 //replace github.com/tidwall/redcon => ../redcon
 replace github.com/tidwall/redcon => github.com/weedge/redcon v0.0.0-20230717070621-d58434c2f821
+
+//replace github.com/weedge/pkg => ../pkg
+
+//replace github.com/weedge/xdis-storager => ../xdis-storager
+
+//replace github.com/weedge/xdis-standalone => ../xdis-standalone

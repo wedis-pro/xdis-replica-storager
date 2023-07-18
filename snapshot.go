@@ -1,6 +1,7 @@
 package replica
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -28,7 +29,7 @@ type SnapshotStore struct {
 
 func NewSnapshotStore(cfg *config.SnapshotConfig) *SnapshotStore {
 	if len(cfg.Path) == 0 {
-		cfg.Path = config.DefaultSnapshotPath
+		cfg.Path = config.DefaultSnapshotPath + gReplicaId
 	}
 	if cfg.MaxNum <= 0 {
 		cfg.MaxNum = config.DefaultSnapshotMaxNum
@@ -42,7 +43,7 @@ func NewSnapshotStore(cfg *config.SnapshotConfig) *SnapshotStore {
 	return s
 }
 
-func (s *SnapshotStore) Open() error {
+func (s *SnapshotStore) Open(ctx context.Context) error {
 	if err := os.MkdirAll(s.cfg.Path, 0755); err != nil {
 		return err
 	}
@@ -51,7 +52,7 @@ func (s *SnapshotStore) Open() error {
 		return err
 	}
 
-	go s.run()
+	go s.run(ctx)
 
 	return nil
 }
@@ -111,7 +112,7 @@ func (s *SnapshotStore) checkSnapshots() error {
 	return nil
 }
 
-func (s *SnapshotStore) run() {
+func (s *SnapshotStore) run(ctx context.Context) {
 	t := time.NewTicker(60 * time.Minute)
 	defer t.Stop()
 
@@ -124,6 +125,8 @@ func (s *SnapshotStore) run() {
 			}
 			s.Unlock()
 		case <-s.quit:
+			return
+		case <-ctx.Done():
 			return
 		}
 	}
@@ -159,7 +162,7 @@ func (s *SnapshotStore) snapshotPath(name string) string {
 }
 
 type snapshotDumper interface {
-	Dump(w io.Writer) error
+	Dump(ctx context.Context, w io.Writer) error
 }
 
 type snapshot struct {
@@ -181,7 +184,7 @@ func (st *snapshot) Size() int64 {
 }
 
 // Create full sync snapshot for replica(master) data store --dump--> snapshot file
-func (s *SnapshotStore) Create(d snapshotDumper) (*snapshot, time.Time, error) {
+func (s *SnapshotStore) Create(ctx context.Context, d snapshotDumper) (*snapshot, time.Time, error) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -205,7 +208,7 @@ func (s *SnapshotStore) Create(d snapshotDumper) (*snapshot, time.Time, error) {
 		return nil, time.Time{}, err
 	}
 
-	if err := d.Dump(f); err != nil {
+	if err := d.Dump(ctx, f); err != nil {
 		f.Close()
 		os.Remove(s.snapshotPath(tmpName))
 		return nil, time.Time{}, err

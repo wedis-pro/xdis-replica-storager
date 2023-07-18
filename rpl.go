@@ -2,6 +2,7 @@ package replica
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"sync"
@@ -116,7 +117,7 @@ func (r *Replication) Close() error {
 	return nil
 }
 
-func (r *Replication) Start() (err error) {
+func (r *Replication) Start(ctx context.Context) (err error) {
 	if r.logStore, err = GetExpiredLogStore(LogStoreName(r.cfg.StoreName)); err != nil {
 		return
 	}
@@ -183,6 +184,7 @@ func (r *Replication) runTickJob() {
 func (r *Replication) SetStorager(store driver.IStorager) {
 	r.storager = store.(*storager.Storager)
 	r.wbatch = r.storager.GetKVStore().NewWriteBatch()
+	r.storager.SetCommitter(r)
 }
 
 func (r *Replication) OnReplayLogToCommit() {
@@ -320,7 +322,7 @@ func (r *Replication) CommitIDBehind() (bool, error) {
 }
 
 // Commit  with WriteBatch for ICommitter Impl, when data batch atomic commit
-func (r *Replication) Commit(wb *openkv.WriteBatch) (err error) {
+func (r *Replication) Commit(ctx context.Context, wb *openkv.WriteBatch) (err error) {
 	// check config only read
 	if r.cfg.GetReadonly() {
 		return ErrWriteInROnly

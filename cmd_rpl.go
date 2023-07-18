@@ -63,7 +63,7 @@ func replicaofCommand(ctx context.Context, c driver.IRespConn, cmdParams [][]byt
 		return nil, err
 	}
 
-	if err = respCmdConn.Replicaof(masterAddr, restart, readonly); err != nil {
+	if err = respCmdConn.Replicaof(ctx, masterAddr, restart, readonly); err != nil {
 		return
 	}
 
@@ -141,7 +141,7 @@ func fullsyncCommand(ctx context.Context, c driver.IRespConn, cmdParams [][]byte
 	if err != nil {
 		return nil, err
 	}
-	respCmdConn.FullSync(needNew)
+	respCmdConn.FullSync(ctx, needNew)
 
 	return nil, standalone.ErrNoops
 }

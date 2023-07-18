@@ -2,6 +2,7 @@ package replica
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -69,7 +70,7 @@ func (m *ReplicaSlave) closeConn() {
 	m.client = nil
 }
 
-func (m *ReplicaSlave) checkConn() error {
+func (m *ReplicaSlave) checkConn(ctx context.Context) error {
 	m.connLock.Lock()
 	defer m.connLock.Unlock()
 
@@ -92,7 +93,7 @@ func (m *ReplicaSlave) checkConn() error {
 	return err
 }
 
-func (m *ReplicaSlave) startReplication(masterAddr string, restart bool) error {
+func (m *ReplicaSlave) startReplication(ctx context.Context, masterAddr string, restart bool) error {
 	//stop last replcation, if avaliable
 	m.Close()
 
@@ -105,7 +106,7 @@ func (m *ReplicaSlave) startReplication(masterAddr string, restart bool) error {
 	}
 
 	m.wg.Add(1)
-	go m.runReplication(restart)
+	go m.runReplication(ctx, restart)
 	return nil
 }
 
@@ -118,7 +119,7 @@ func (m *ReplicaSlave) isQuited() bool {
 	}
 }
 
-func (m *ReplicaSlave) runReplication(restart bool) {
+func (m *ReplicaSlave) runReplication(ctx context.Context, restart bool) {
 	defer func() {
 		m.state.Store(RplConnectState)
 		m.wg.Done()
@@ -131,8 +132,8 @@ func (m *ReplicaSlave) runReplication(restart bool) {
 		}
 
 		// connect
-		if err := m.checkConn(); err != nil {
-			klog.Errorf("check ReplicaSlave %s connection error %s, try 3s later", m.masterAddr, err.Error())
+		if err := m.checkConn(ctx); err != nil {
+			klog.CtxErrorf(ctx, "check ReplicaSlave %s connection error %s, try 3s later", m.masterAddr, err.Error())
 
 			select {
 			case <-time.After(3 * time.Second):
@@ -147,26 +148,25 @@ func (m *ReplicaSlave) runReplication(restart bool) {
 		}
 
 		m.state.Store(RplConnectedState)
-
 		// regisiter slave to ReplicaSlave
-		if err := m.replConf(); err != nil {
+		if err := m.replConf(ctx); err != nil {
 			if strings.Contains(err.Error(), ErrRplNotSupport.Error()) {
-				klog.Fatalf("ReplicaSlave doesn't support replication, wait 10s and retry")
+				klog.CtxErrorf(ctx, "ReplicaSlave doesn't support replication, wait 10s and retry")
 				select {
 				case <-time.After(10 * time.Second):
 				case <-m.quitCh:
 					return
 				}
 			} else {
-				klog.Errorf("replconf error %s", err.Error())
+				klog.CtxErrorf(ctx, "replconf error %s", err.Error())
 			}
 
 			continue
 		}
 
 		if restart {
-			if err := m.fullSync(); err != nil {
-				klog.Errorf("restart fullsync error %s", err.Error())
+			if err := m.fullSync(ctx); err != nil {
+				klog.CtxErrorf(ctx, "restart fullsync error %s", err.Error())
 				continue
 			}
 			m.state.Store(RplConnectedState)
@@ -174,8 +174,8 @@ func (m *ReplicaSlave) runReplication(restart bool) {
 
 		// sync loop
 		for {
-			if err := m.sync(); err != nil {
-				klog.Errorf("sync error %s", err.Error())
+			if err := m.sync(ctx); err != nil {
+				klog.CtxErrorf(ctx, "sync error %s", err.Error())
 				break
 			}
 			m.state.Store(RplConnectedState)
@@ -187,7 +187,7 @@ func (m *ReplicaSlave) runReplication(restart bool) {
 	}
 }
 
-func (m *ReplicaSlave) replConf() error {
+func (m *ReplicaSlave) replConf(ctx context.Context) error {
 	_, port, err := net.SplitHostPort(m.srv.opts.Addr)
 	if err != nil {
 		return err
@@ -202,8 +202,8 @@ func (m *ReplicaSlave) replConf() error {
 	return nil
 }
 
-func (m *ReplicaSlave) fullSync() error {
-	klog.Info("begin full sync")
+func (m *ReplicaSlave) fullSync(ctx context.Context) error {
+	klog.CtxInfof(ctx, "begin full sync")
 
 	if err := m.client.SendWithStringArgs("fullsync"); err != nil {
 		return err
@@ -211,7 +211,6 @@ func (m *ReplicaSlave) fullSync() error {
 
 	m.state.Store(RplSyncState)
 
-	// todo: data dir
 	dumpPath := path.Join(m.srv.opts.ReplicaCfg.Path, "ReplicaSlave.dump")
 	f, err := os.OpenFile(dumpPath, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -223,13 +222,13 @@ func (m *ReplicaSlave) fullSync() error {
 	err = m.client.ReceiveBulkTo(f)
 	f.Close()
 	if err != nil {
-		klog.Errorf("read dump data error %s", err.Error())
+		klog.CtxErrorf(ctx, "read dump data error %s", err.Error())
 		return err
 	}
 
 	// loadDump clears all data and loads dump file to db
-	if _, err = m.srv.replica.LoadDumpFile(dumpPath); err != nil {
-		klog.Errorf("load dump file error %s", err.Error())
+	if _, err = m.srv.replica.LoadDumpFile(ctx, dumpPath); err != nil {
+		klog.CtxErrorf(ctx, "load dump file error %s", err.Error())
 		return err
 	}
 
@@ -248,7 +247,7 @@ func (m *ReplicaSlave) nextSyncLogID() (uint64, error) {
 	return s.CommitID + 1, nil
 }
 
-func (m *ReplicaSlave) sync() error {
+func (m *ReplicaSlave) sync(ctx context.Context) error {
 	var err error
 	var syncID uint64
 	if syncID, err = m.nextSyncLogID(); err != nil {
@@ -263,7 +262,7 @@ func (m *ReplicaSlave) sync() error {
 	m.syncBuf.Reset()
 	if err = m.client.ReceiveBulkTo(&m.syncBuf); err != nil {
 		if strings.Contains(err.Error(), ErrLogMissed.Error()) {
-			return m.fullSync()
+			return m.fullSync(ctx)
 		}
 		return err
 	}

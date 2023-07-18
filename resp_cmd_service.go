@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/cloudwego/kitex/pkg/klog"
+	"github.com/tidwall/redcon"
 	"github.com/weedge/pkg/driver"
 	"github.com/weedge/pkg/utils"
 	"github.com/weedge/xdis-replica-storager/config"
 	standalone "github.com/weedge/xdis-standalone"
+	standaloneCfg "github.com/weedge/xdis-standalone/config"
 )
 
 type RespCmdService struct {
@@ -31,16 +33,23 @@ type RespCmdService struct {
 	slaveSyncAck chan uint64
 }
 
-func New(opts *config.RespCmdServiceOptions) *RespCmdService {
+var (
+	gReplicaId string
+)
+
+func New(opts *config.RespCmdServiceOptions, standaloneOpts *standaloneCfg.RespCmdServiceOptions) *RespCmdService {
 	if opts == nil {
 		return nil
 	}
 
 	s := new(RespCmdService)
 	s.opts = opts
+	s.opts.RespCmdServiceOptions = *standaloneOpts
+
 	s.RespCmdService = standalone.New(&opts.RespCmdServiceOptions)
-	s.snapshotStore = NewSnapshotStore(&opts.SnapshotCfg)
 	s.replica = NewReplication(&opts.ReplicaCfg)
+	gReplicaId = opts.ReplicaCfg.ReplicaId
+	s.snapshotStore = NewSnapshotStore(&opts.SnapshotCfg)
 
 	s.slaves = make(map[string]*RespCmdConn)
 	s.slaveSyncAck = make(chan uint64)
@@ -48,17 +57,76 @@ func New(opts *config.RespCmdServiceOptions) *RespCmdService {
 	return s
 }
 
-// Start service
+func (s *RespCmdService) InitRespConn(ctx context.Context, dbIdx int) driver.IRespConn {
+	c := s.RespCmdService.InitRespConn(ctx, dbIdx)
+	conn := &RespCmdConn{RespCmdConn: c.(*standalone.RespCmdConn)}
+
+	return conn
+}
+
+func (s *RespCmdService) OnAccept(conn redcon.Conn) bool {
+	klog.Infof("accept: %s", conn.RemoteAddr())
+
+	// todo: get net.Conn request info set to context Value for trace
+	// add resp cmd conn
+	respConn := s.InitRespConn(context.Background(), 0)
+	respCmdConn := respConn.(*RespCmdConn)
+	respCmdConn.SetRedConn(conn)
+	s.AddRespCmdConn(respCmdConn)
+
+	// set ctx
+	conn.SetContext(respCmdConn)
+	return true
+}
+
+func (s *RespCmdService) OnClosed(conn redcon.Conn, err error) {
+	logF := klog.Infof
+	if err != nil {
+		logF = klog.Errorf
+	}
+	logF("closed by %s, err: %v", conn.RemoteAddr(), err)
+
+	// del resp cmd conn
+	respCmdConn, ok := conn.Context().(*RespCmdConn)
+	if !ok {
+		klog.Errorf("resp cmd connect client init err")
+		return
+	}
+	s.DelRespCmdConn(respCmdConn)
+	s.removeSlave(respCmdConn)
+}
+
+// Start service set onAccept onClosed then start resp cmd service
 func (s *RespCmdService) Start(ctx context.Context) (err error) {
+	s.SetOnAccept(s.OnAccept)
+	s.SetOnClosed(s.OnClosed)
+	driver.MergeRegisteredCmdHandles(driver.RegisteredCmdHandles, driver.RegisteredReplicaCmdHandles, true)
+	s.SetRegisteredCmdHandles(driver.RegisteredReplicaCmdHandles)
 	s.RespCmdService.Start(ctx)
+
 	s.replica.AddNewLogEventHandler(s.publishNewLog)
+	s.replica.Start(ctx)
+	s.snapshotStore.Open(ctx)
 
 	return
 }
 
 // Close resp service
 func (s *RespCmdService) Close() (err error) {
-	s.RespCmdService.Close()
+	if s.RespCmdService != nil {
+		s.RespCmdService.Close()
+		s.RespCmdService = nil
+	}
+
+	if s.replica != nil {
+		s.replica.Close()
+		s.replica = nil
+	}
+
+	if s.snapshotStore != nil {
+		s.snapshotStore.Close()
+		s.snapshotStore = nil
+	}
 
 	return
 }
@@ -82,7 +150,7 @@ func (s *RespCmdService) addSlave(c *RespCmdConn) {
 	s.slock.Unlock()
 }
 
-func (s *RespCmdService) removeSlave(c *RespCmdConn, activeQuit bool) {
+func (s *RespCmdService) removeSlave(c *RespCmdConn) {
 	addr := c.slaveListeningAddr
 
 	s.slock.Lock()
@@ -165,7 +233,7 @@ func (s *RespCmdService) publishNewLog(l *Log) {
 }
 
 // replicaof
-func (s *RespCmdService) replicaof(masterAddr string, restart bool, readonly bool) error {
+func (s *RespCmdService) replicaof(ctx context.Context, masterAddr string, restart bool, readonly bool) error {
 	s.rplSlave.Lock()
 	defer s.rplSlave.Unlock()
 
@@ -184,5 +252,5 @@ func (s *RespCmdService) replicaof(masterAddr string, restart bool, readonly boo
 		return nil
 	}
 
-	return s.rplSlave.startReplication(masterAddr, restart)
+	return s.rplSlave.startReplication(ctx, masterAddr, restart)
 }

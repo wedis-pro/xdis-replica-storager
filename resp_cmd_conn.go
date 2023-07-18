@@ -2,6 +2,7 @@ package replica
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"sync/atomic"
@@ -61,31 +62,31 @@ func (c *RespCmdConn) Sync(syncLogID uint64) (buf []byte, err error) {
 }
 
 // Replicaof
-func (c *RespCmdConn) Replicaof(masterAddr string, restart bool, readonly bool) (err error) {
-	err = c.srv.replicaof(masterAddr, restart, readonly)
+func (c *RespCmdConn) Replicaof(ctx context.Context, masterAddr string, restart bool, readonly bool) (err error) {
+	err = c.srv.replicaof(ctx, masterAddr, restart, readonly)
 	return
 }
 
 // FullSync
-func (c *RespCmdConn) FullSync(needNew bool) (err error) {
+func (c *RespCmdConn) FullSync(ctx context.Context, needNew bool) (err error) {
 	var s *snapshot
 	var t time.Time
 
 	dumper := c.srv.replica
 	if needNew {
-		s, _, err = c.srv.snapshotStore.Create(dumper)
+		s, _, err = c.srv.snapshotStore.Create(ctx, dumper)
 	} else {
 		if s, t, err = c.srv.snapshotStore.OpenLatest(); err != nil {
 			return err
 		} else if s == nil {
-			s, _, err = c.srv.snapshotStore.Create(dumper)
+			s, _, err = c.srv.snapshotStore.Create(ctx, dumper)
 		} else {
 			gap := time.Duration(c.srv.replica.cfg.ExpiredLogDays*24*3600) * time.Second / 2
 			minT := time.Now().Add(-gap)
 			//snapshot is too old
 			if t.Before(minT) {
 				s.Close()
-				s, _, err = c.srv.snapshotStore.Create(dumper)
+				s, _, err = c.srv.snapshotStore.Create(ctx, dumper)
 			}
 		}
 	}
