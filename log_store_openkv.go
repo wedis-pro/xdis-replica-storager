@@ -35,7 +35,7 @@ func NewOpenkvLogStore(cfg *config.OpenkvOptions) *OpenkvLogStore {
 	s.cfg = cfg
 	s.first = InvalidLogID
 	s.last = InvalidLogID
-	s.logKeyBufPool = poolutils.NewBuffPoolWithLen(8, 8)
+	s.logKeyBufPool = poolutils.NewBuffPoolWithLen(0, 8)
 
 	return s
 }
@@ -102,11 +102,12 @@ func (s *OpenkvLogStore) lastID() (uint64, error) {
 
 func (s *OpenkvLogStore) GetLog(id uint64, log *Log) error {
 	//key := make([]byte, 8)
+	//binary.BigEndian.PutUint64(key, log.ID)
 	buf := s.logKeyBufPool.Get()
 	defer s.logKeyBufPool.Put(buf)
+	binary.Write(buf, binary.BigEndian, log.ID)
 	key := buf.Bytes()
 
-	binary.BigEndian.PutUint64(key, id)
 	v, err := s.db.Get(key)
 	if err != nil {
 		return err
@@ -135,11 +136,12 @@ func (s *OpenkvLogStore) StoreLog(log *Log) error {
 	last = log.ID
 
 	//key := make([]byte, 8)
+	//binary.BigEndian.PutUint64(key, log.ID)
 	buf := s.logKeyBufPool.Get()
 	defer s.logKeyBufPool.Put(buf)
+	binary.Write(buf, binary.BigEndian, log.ID)
 	key := buf.Bytes()
 
-	binary.BigEndian.PutUint64(key, log.ID)
 	if err := log.Encode(&s.valBuf); err != nil {
 		return err
 	}
