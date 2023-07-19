@@ -120,7 +120,7 @@ func (l *Log) Encode(w io.Writer) error {
 	binary.BigEndian.PutUint32(b[pos:], uint32(len(l.Data)))
 
 	n, err := w.Write(b)
-	headPool.Put(&b)
+	headPool.Put(b)
 
 	if err != nil {
 		return err
@@ -156,13 +156,13 @@ func (l *Log) DecodeHead(r io.Reader) (uint32, error) {
 	buf := headPool.Get().([]byte)
 
 	if _, err := io.ReadFull(r, buf); err != nil {
-		headPool.Put(&buf)
+		headPool.Put(buf)
 		return 0, err
 	}
 
 	length := l.decodeHeadBuf(buf)
 
-	headPool.Put(&buf)
+	headPool.Put(buf)
 
 	return length, nil
 }
@@ -198,13 +198,13 @@ func (l *Log) DecodeHeadAt(r io.ReaderAt, pos int64) (uint32, error) {
 
 	n, err := r.ReadAt(buf, pos)
 	if err != nil && err != io.EOF {
-		headPool.Put(&buf)
+		headPool.Put(buf)
 
 		return 0, err
 	}
 
 	length := l.decodeHeadBuf(buf)
-	headPool.Put(&buf)
+	headPool.Put(buf)
 
 	if err == io.EOF && (length != 0 || n != len(buf)) {
 		return 0, err

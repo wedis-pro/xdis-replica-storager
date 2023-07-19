@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/weedge/pkg/utils/poolutils"
 	replicaCfg "github.com/weedge/xdis-replica-storager/config"
 	"github.com/weedge/xdis-storager/config"
 	"github.com/weedge/xdis-storager/openkv"
@@ -23,8 +22,8 @@ type OpenkvLogStore struct {
 	first uint64
 	last  uint64
 
-	valBuf        bytes.Buffer
-	logKeyBufPool *poolutils.BufferPool
+	valBuf bytes.Buffer
+	//logKeyBufPool *poolutils.BufferPool
 }
 
 func NewOpenkvLogStore(cfg *config.OpenkvOptions) *OpenkvLogStore {
@@ -35,7 +34,7 @@ func NewOpenkvLogStore(cfg *config.OpenkvOptions) *OpenkvLogStore {
 	s.cfg = cfg
 	s.first = InvalidLogID
 	s.last = InvalidLogID
-	s.logKeyBufPool = poolutils.NewBuffPoolWithLen(0, 8)
+	//s.logKeyBufPool = poolutils.NewBuffPoolWithLen(0, 8)
 
 	return s
 }
@@ -101,12 +100,12 @@ func (s *OpenkvLogStore) lastID() (uint64, error) {
 }
 
 func (s *OpenkvLogStore) GetLog(id uint64, log *Log) error {
-	//key := make([]byte, 8)
-	//binary.BigEndian.PutUint64(key, log.ID)
-	buf := s.logKeyBufPool.Get()
-	defer s.logKeyBufPool.Put(buf)
-	binary.Write(buf, binary.BigEndian, log.ID)
-	key := buf.Bytes()
+	key := make([]byte, 8)
+	binary.BigEndian.PutUint64(key, log.ID)
+	//buf := s.logKeyBufPool.Get()
+	//defer s.logKeyBufPool.Put(buf)
+	//binary.Write(buf, binary.BigEndian, log.ID)
+	//key := buf.Bytes()
 
 	v, err := s.db.Get(key)
 	if err != nil {
@@ -135,12 +134,12 @@ func (s *OpenkvLogStore) StoreLog(log *Log) error {
 
 	last = log.ID
 
-	//key := make([]byte, 8)
-	//binary.BigEndian.PutUint64(key, log.ID)
-	buf := s.logKeyBufPool.Get()
-	defer s.logKeyBufPool.Put(buf)
-	binary.Write(buf, binary.BigEndian, log.ID)
-	key := buf.Bytes()
+	key := make([]byte, 8)
+	binary.BigEndian.PutUint64(key, log.ID)
+	//buf := s.logKeyBufPool.Get()
+	//defer s.logKeyBufPool.Put(buf)
+	//binary.Write(buf, binary.BigEndian, log.ID)
+	//key := buf.Bytes()
 
 	if err := log.Encode(&s.valBuf); err != nil {
 		return err
