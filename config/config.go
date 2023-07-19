@@ -4,12 +4,14 @@ import (
 	"sync"
 
 	standaloneCfg "github.com/weedge/xdis-standalone/config"
+	storagerCfg "github.com/weedge/xdis-storager/config"
 )
 
 type RespCmdServiceOptions struct {
-	standaloneCfg.RespCmdServiceOptions
-	ReplicaCfg  ReplicationConfig `mapstructure:"replicaCfg"`
-	SnapshotCfg SnapshotConfig    `mapstructure:"snapshotCfg"`
+	standaloneCfg.RespCmdServiceOptions `mapstructure:",squash"`
+	LogStoreOpenkvCfg storagerCfg.OpenkvOptions `mapstructure:"logStoreOpenkvCfg"`
+	ReplicaCfg        ReplicationConfig         `mapstructure:"replicaCfg"`
+	SnapshotCfg       SnapshotConfig            `mapstructure:"snapshotCfg"`
 }
 
 type ReplicationConfig struct {
@@ -21,7 +23,7 @@ type ReplicationConfig struct {
 	WaitSyncTime     int    `mapstructure:"waitSyncTime"`
 	WaitMaxSlaveAcks int    `mapstructure:"waitMaxSlaveAcks"`
 	ExpiredLogDays   int    `mapstructure:"expiredLogDays"`
-	StoreName        string `mapstructure:"storeName"`
+	LogStoreName     string `mapstructure:"logStoreName"`
 	MaxLogFileSize   int64  `mapstructure:"maxLogFileSize"`
 	MaxLogFileNum    int    `mapstructure:"maxLogFileNum"`
 	SyncLog          int    `mapstructure:"syncLog"`
@@ -49,8 +51,10 @@ func DefaultReplicationConfig() *ReplicationConfig {
 
 func DefaultRespCmdServiceOptions() *RespCmdServiceOptions {
 	return &RespCmdServiceOptions{
-		ReplicaCfg:  *DefaultReplicationConfig(),
-		SnapshotCfg: *DefaultSnapshotConfig(),
+		RespCmdServiceOptions: *standaloneCfg.DefaultRespCmdServiceOptions(),
+		LogStoreOpenkvCfg:     *storagerCfg.DefaultOpenkvOptions(),
+		ReplicaCfg:            *DefaultReplicationConfig(),
+		SnapshotCfg:           *DefaultSnapshotConfig(),
 	}
 }
 

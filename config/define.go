@@ -2,6 +2,8 @@ package config
 
 const (
 	RegisterRespSrvModeName = "replica-master-slave"
+
+	RegiterLogStoreOpenkvName = "openkv"
 )
 
 // defualt config

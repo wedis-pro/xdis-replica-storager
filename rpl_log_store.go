@@ -12,6 +12,7 @@ type LogStoreName string
 
 type ILogStore interface {
 	Name() LogStoreName
+	Open() error
 	// FirstID get first logId
 	FirstID() (uint64, error)
 	// LastID get last logId

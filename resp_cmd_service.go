@@ -57,6 +57,14 @@ func New(opts *config.RespCmdServiceOptions, standaloneOpts *standaloneCfg.RespC
 	return s
 }
 
+func (s *RespCmdService) RegisterLogStore() error {
+	logStore := NewOpenkvLogStore(&s.opts.LogStoreOpenkvCfg)
+	if err := RegisterExpiredLogStore(logStore); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *RespCmdService) InitRespConn(ctx context.Context, dbIdx int) driver.IRespConn {
 	c := s.RespCmdService.InitRespConn(ctx, dbIdx)
 	conn := &RespCmdConn{RespCmdConn: c.(*standalone.RespCmdConn)}
@@ -102,11 +110,22 @@ func (s *RespCmdService) Start(ctx context.Context) (err error) {
 	s.SetOnClosed(s.OnClosed)
 	driver.MergeRegisteredCmdHandles(driver.RegisteredCmdHandles, driver.RegisteredReplicaCmdHandles, true)
 	s.SetRegisteredCmdHandles(driver.RegisteredReplicaCmdHandles)
-	s.RespCmdService.Start(ctx)
+
+	if err = s.RespCmdService.Start(ctx); err != nil {
+		return
+	}
 
 	s.replica.AddNewLogEventHandler(s.publishNewLog)
-	s.replica.Start(ctx)
-	s.snapshotStore.Open(ctx)
+	if err = s.RegisterLogStore(); err != nil {
+		return
+	}
+	if err = s.replica.Start(ctx); err != nil {
+		return
+	}
+
+	if err = s.snapshotStore.Open(ctx); err != nil {
+		return
+	}
 
 	return
 }

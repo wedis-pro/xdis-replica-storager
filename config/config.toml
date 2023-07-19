@@ -1,0 +1,91 @@
+# resp cmd Server listen address
+addr = "0.0.0.0:6666"
+
+# auth password
+authPassword = ""
+
+# if connection receives no data after n seconds, it may be dead, close
+# 0 to disable and not check
+# idle conn close time (s)
+connKeepaliveInterval = 0
+
+
+[logStoreOpenkvCfg]
+# log store path, all wedisdb's data will be saved here
+dataDir = "./logstore"
+
+# Sync commit to disk if possible for openkv
+#  0: no sync
+#  1: sync every second
+#  2: sync every commit
+dbSyncCommit = 2
+
+# Choose which backend storage to use, 
+# impl openkv driver register to support:
+# memory (btree, sse-map, skiplist)
+# LSM-Tree Log-Structured Merge Tree (goleveldb(simple kv),badger(big val),pebble(range))
+# LSH Log-Structured Hash Table (gobeansdb(single search))
+# B-Tree (bboltdb r)
+kvStoreName = "goleveldb"
+
+# If not set, use dataDir/"kvStoreName"_data
+dbPath = ""
+
+
+[replicaCfg]
+# replicaId unique replication ID
+replicaId = ""
+# Set replicaof/slaveof to enable replication from master, empty, no replication
+# Any write operations except flushall and replication will be disabled in slave mode.
+replicaOf = ""
+
+# Readonly mode, slave server is always readonly even readonly = false
+# for readonly mode, only replication and flushall can write
+readOnly = false
+
+# Path to store replication information(write ahead log, commit log, etc.)
+# if not set, use ./data/rpl{replicaId}
+path = ""
+
+# If sync is true, the new log must be sent to some slaves, and then commit.
+# It will reduce performance but have better high availability.
+sync = false
+
+# If sync is true, wait at last wait_sync_time milliseconds for slave syncing this log
+waitSyncTime = 500
+
+# If sync is true, wait at most min(wait_max_slave_acks, (n + 1) / 2) to promise syncing ok.
+# n is slave number
+# If 0, wait (n + 1) / 2 acks.
+waitMaxSlaveAcks = 2
+
+# Expire write ahead logs after the given days
+expiredLogDays = 7
+
+# log store name: openkv
+# change in runtime is very dangerous
+logStoreName = "openkv"
+
+# for file store, if 0, use default 256MB, max is 1G
+maxLogFileSize = 0
+
+# for file store, if 0, use default 50
+maxLogFileNum = 0
+
+# Sync log to disk if possible
+#  0: no sync
+#  1: sync every second
+#  2: sync every commit
+syncLog = 1
+
+# Compress the log or not
+compression = false
+
+
+[snapshotCfg]
+# Path to store snapshot dump file
+# if not set, use ./data/snapshot{replicaId}
+# snapshot file name format is dmp-2006-01-02T15:04:05.999999999
+path = ""
+# Reserve newest max_num snapshot dump files
+maxNum = ""

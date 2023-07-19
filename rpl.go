@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
 	"sync"
 	"time"
 
@@ -98,18 +99,17 @@ func (r *Replication) Close() error {
 
 	r.Lock()
 	defer r.Unlock()
-	klog.Infof("closing replication with commit ID %d", r.commitLog.id)
 
 	if r.logStore != nil {
 		r.logStore.Close()
 		r.logStore = nil
 	}
 
-	if err := r.commitLog.UpdateCommitID(r.commitLog.id, true); err != nil {
-		klog.Errorf("update commit id err %s", err.Error())
-	}
-
 	if r.commitLog != nil {
+		klog.Infof("closing replication with commit ID %d", r.commitLog.id)
+		if err := r.commitLog.UpdateCommitID(r.commitLog.id, true); err != nil {
+			klog.Errorf("update commit id err %s", err.Error())
+		}
 		r.commitLog.Close()
 		r.commitLog = nil
 	}
@@ -118,8 +118,16 @@ func (r *Replication) Close() error {
 }
 
 func (r *Replication) Start(ctx context.Context) (err error) {
-	if r.logStore, err = GetExpiredLogStore(LogStoreName(r.cfg.StoreName)); err != nil {
+	if r.logStore, err = GetExpiredLogStore(LogStoreName(r.cfg.LogStoreName)); err != nil {
 		return
+	}
+
+	if r.logStore.Open(); err != nil {
+		return
+	}
+
+	if err = os.MkdirAll(r.cfg.Path, 0755); err != nil {
+		return nil
 	}
 
 	r.commitLog = new(CommitLog)
