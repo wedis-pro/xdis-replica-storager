@@ -101,10 +101,10 @@ func (s *OpenkvLogStore) lastID() (uint64, error) {
 
 func (s *OpenkvLogStore) GetLog(id uint64, log *Log) error {
 	key := make([]byte, 8)
-	binary.BigEndian.PutUint64(key, log.ID)
+	binary.BigEndian.PutUint64(key, id)
 	//buf := s.logKeyBufPool.Get()
 	//defer s.logKeyBufPool.Put(buf)
-	//binary.Write(buf, binary.BigEndian, log.ID)
+	//binary.Write(buf, binary.BigEndian, id)
 	//key := buf.Bytes()
 
 	v, err := s.db.Get(key)

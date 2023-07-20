@@ -136,7 +136,7 @@ func (l *Log) Encode(w io.Writer) error {
 	return nil
 }
 
-// decode bin log
+// Decode decode bin log by log head meta info (log len)
 func (l *Log) Decode(r io.Reader) error {
 	length, err := l.DecodeHead(r)
 	if err != nil {
@@ -152,6 +152,7 @@ func (l *Log) Decode(r io.Reader) error {
 	return nil
 }
 
+// DecodeHead decode log head meta info (log len)
 func (l *Log) DecodeHead(r io.Reader) (uint32, error) {
 	buf := headPool.Get().([]byte)
 

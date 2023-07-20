@@ -15,6 +15,7 @@ type RespCmdConn struct {
 	*standalone.RespCmdConn
 
 	srv *RespCmdService
+
 	// lastLogID record for slave's connect to sync log
 	lastLogID atomic.Uint64
 	// slaveListeningAddr slave listening addr for send sync log

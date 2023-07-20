@@ -192,8 +192,8 @@ github.com/weedge/pkg v0.0.0-20230719122409-952559a3c29e h1:om+e5xHlv55vfDAva0eJ
 github.com/weedge/pkg v0.0.0-20230719122409-952559a3c29e/go.mod h1:NG9utb9o+HdJOKXv/DIy+jxlxgoYisiSv9FJtRn2kLM=
 github.com/weedge/redcon v0.0.0-20230717070621-d58434c2f821 h1:bRy+D19MDn+EPdiZ18BAcaT/mfZhn+a4JHSrBovwh8M=
 github.com/weedge/redcon v0.0.0-20230717070621-d58434c2f821/go.mod h1:p5Wbsgeyi2VSTBWOcA5vRXrOb9arFTcU2+ZzFjqV75Y=
-github.com/weedge/xdis-standalone v0.0.0-20230718170242-4c70f879756d h1:j6+qIZ0QU/mhzP3bxrk1J4GYxGBE8pgopWvR/dqCoVY=
-github.com/weedge/xdis-standalone v0.0.0-20230718170242-4c70f879756d/go.mod h1:JQzYNqja6ptUyVrW9c0ywLTGG/KhqyJswWxSCTue1Z0=
+github.com/weedge/xdis-standalone v0.0.0-20230720044138-3e851dc7b9eb h1:sTDHUki5y5s+3uDJYWVsYTj505tUbiOM71hg6SOBZrs=
+github.com/weedge/xdis-standalone v0.0.0-20230720044138-3e851dc7b9eb/go.mod h1:JQzYNqja6ptUyVrW9c0ywLTGG/KhqyJswWxSCTue1Z0=
 github.com/weedge/xdis-storager v0.0.0-20230719122548-21330058538e h1:51r6MsRBMEBAcig0KlyT17JY45YOToLFSiP+HbDZez0=
 github.com/weedge/xdis-storager v0.0.0-20230719122548-21330058538e/go.mod h1:QkTU6yTo6OodmYxXg5FPBQOfcAd7GA1iII1EPL1lJ/A=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

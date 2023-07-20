@@ -51,6 +51,8 @@ func New(opts *config.RespCmdServiceOptions, standaloneOpts *standaloneCfg.RespC
 	gReplicaId = opts.ReplicaCfg.ReplicaId
 	s.snapshotStore = NewSnapshotStore(&opts.SnapshotCfg)
 
+	s.rplSlave = NewReplicaSlave(s)
+
 	s.slaves = make(map[string]*RespCmdConn)
 	s.slaveSyncAck = make(chan uint64)
 
@@ -67,7 +69,10 @@ func (s *RespCmdService) RegisterLogStore() error {
 
 func (s *RespCmdService) InitRespConn(ctx context.Context, dbIdx int) driver.IRespConn {
 	c := s.RespCmdService.InitRespConn(ctx, dbIdx)
-	conn := &RespCmdConn{RespCmdConn: c.(*standalone.RespCmdConn)}
+	conn := &RespCmdConn{
+		RespCmdConn: c.(*standalone.RespCmdConn),
+		srv:         s,
+	}
 
 	return conn
 }
@@ -121,6 +126,10 @@ func (s *RespCmdService) Start(ctx context.Context) (err error) {
 	}
 	if err = s.replica.Start(ctx); err != nil {
 		return
+	}
+
+	if len(s.opts.ReplicaCfg.ReplicaOf) > 0 {
+		s.replicaof(ctx, s.opts.ReplicaCfg.ReplicaOf, false, s.opts.ReplicaCfg.Readonly)
 	}
 
 	if err = s.snapshotStore.Open(ctx); err != nil {

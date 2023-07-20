@@ -41,5 +41,9 @@ file:
 * store log file: replica store log (ILogStore impl eg: WAL)
 * snapshot file: replica snapshot file for fullsync, format [len(compress key) | compress key | len(compress value) | compress value ...]
 
+Notice:
+* if master down, need HA failover server to select a new master role; then slave slaveof/replicaof master to sync log.
+* if store node auto HA failover, need some transport collaboration protocol to select a new leader like raft/paxos consistency protocol, then leader sync log to followers
+
 # reference
 * [ledisdb](https://github.com/ledisdb/ledisdb)

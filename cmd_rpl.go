@@ -21,7 +21,7 @@ func init() {
 
 func getReplicaSrvRespConn(c driver.IRespConn) (*RespCmdConn, error) {
 	respCmdConn, ok := c.(*RespCmdConn)
-	if !ok {
+	if !ok || respCmdConn.srv == nil {
 		return nil, ErrNoInitRespConn
 	}
 	if respCmdConn.srv.replica == nil {

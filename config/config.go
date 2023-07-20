@@ -9,9 +9,9 @@ import (
 
 type RespCmdServiceOptions struct {
 	standaloneCfg.RespCmdServiceOptions `mapstructure:",squash"`
-	LogStoreOpenkvCfg storagerCfg.OpenkvOptions `mapstructure:"logStoreOpenkvCfg"`
-	ReplicaCfg        ReplicationConfig         `mapstructure:"replicaCfg"`
-	SnapshotCfg       SnapshotConfig            `mapstructure:"snapshotCfg"`
+	LogStoreOpenkvCfg                   storagerCfg.OpenkvOptions `mapstructure:"logStoreOpenkvCfg"`
+	ReplicaCfg                          ReplicationConfig         `mapstructure:"replicaCfg"`
+	SnapshotCfg                         SnapshotConfig            `mapstructure:"snapshotCfg"`
 }
 
 type ReplicationConfig struct {

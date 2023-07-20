@@ -81,6 +81,10 @@ func NewReplication(cfg *config.ReplicationConfig) *Replication {
 	rpl.nc = make(chan struct{})
 	rpl.quitCh = make(chan struct{})
 
+	if len(cfg.ReplicaOf) > 0 {
+		cfg.Readonly = true
+	}
+
 	return rpl
 }
 
@@ -202,6 +206,7 @@ func (r *Replication) OnReplayLogToCommit() {
 		select {
 		case <-r.rc:
 			r.replayLogToCommit()
+			klog.Debugf("replayLogToCommit done current commit logId %d", r.commitLog.id)
 		case <-r.quitCh:
 			return
 		}
@@ -438,7 +443,7 @@ func (r *Replication) ReadLogsToTimeout(startLogID uint64, w io.Writer, timeout 
 	select {
 	// wait a new log has been stored to read
 	case <-r.WaitNewLog():
-	// read time out
+	// wait time out for read new log
 	case <-time.After(timeout):
 	// for master processor terminate to return current resp rsp
 	case <-r.quitCh:
@@ -491,8 +496,8 @@ func (r *Replication) ReadLogsTo(startLogID uint64, w io.Writer) (n int, nextLog
 }
 
 // StoreLogsFromReader stores logs from the Reader
-func (r *Replication) StoreLogsFromReader(rb io.Reader) error {
-	if !r.cfg.Readonly {
+func (r *Replication) StoreLogsFromReader(ctx context.Context, rb io.Reader) error {
+	if !r.cfg.GetReadonly() {
 		return ErrRplInRDWR
 	}
 
@@ -508,6 +513,7 @@ func (r *Replication) StoreLogsFromReader(rb io.Reader) error {
 		if err := r.StoreLog(log); err != nil {
 			return err
 		}
+		klog.CtxDebugf(ctx, "store log %+v ok", log)
 	}
 
 	r.noticeReplication()
@@ -515,7 +521,7 @@ func (r *Replication) StoreLogsFromReader(rb io.Reader) error {
 }
 
 // StoreLogsFromData stores logs from data.
-func (r *Replication) StoreLogsFromData(data []byte) error {
+func (r *Replication) StoreLogsFromData(ctx context.Context, data []byte) error {
 	rb := bytes.NewReader(data)
-	return r.StoreLogsFromReader(rb)
+	return r.StoreLogsFromReader(ctx, rb)
 }

@@ -277,10 +277,11 @@ func (m *ReplicaSlave) sync(ctx context.Context) error {
 
 	buf = buf[8:]
 	if len(buf) == 0 {
+		klog.CtxDebugf(ctx, "no log data to sync from master %s", m.masterAddr)
 		return nil
 	}
 
-	if err = m.srv.replica.StoreLogsFromData(buf); err != nil {
+	if err = m.srv.replica.StoreLogsFromData(ctx, buf); err != nil {
 		return err
 	}
 
