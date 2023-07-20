@@ -105,7 +105,10 @@ func (s *RespCmdService) OnClosed(conn redcon.Conn, err error) {
 		klog.Errorf("resp cmd connect client init err")
 		return
 	}
+
+	//s.RespCmdService.DelRespCmdConn(respCmdConn)
 	s.DelRespCmdConn(respCmdConn)
+
 	s.removeSlave(respCmdConn)
 }
 
@@ -141,11 +144,6 @@ func (s *RespCmdService) Start(ctx context.Context) (err error) {
 
 // Close resp service
 func (s *RespCmdService) Close() (err error) {
-	if s.RespCmdService != nil {
-		s.RespCmdService.Close()
-		s.RespCmdService = nil
-	}
-
 	if s.replica != nil {
 		s.replica.Close()
 		s.replica = nil
@@ -154,6 +152,11 @@ func (s *RespCmdService) Close() (err error) {
 	if s.snapshotStore != nil {
 		s.snapshotStore.Close()
 		s.snapshotStore = nil
+	}
+
+	if s.RespCmdService != nil {
+		s.RespCmdService.Close()
+		s.RespCmdService = nil
 	}
 
 	return
