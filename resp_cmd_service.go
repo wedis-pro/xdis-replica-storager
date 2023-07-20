@@ -106,8 +106,9 @@ func (s *RespCmdService) OnClosed(conn redcon.Conn, err error) {
 		return
 	}
 
-	//s.RespCmdService.DelRespCmdConn(respCmdConn)
-	s.DelRespCmdConn(respCmdConn)
+	if s.RespCmdService != nil {
+		s.RespCmdService.DelRespCmdConn(respCmdConn)
+	}
 
 	s.removeSlave(respCmdConn)
 }
@@ -144,6 +145,11 @@ func (s *RespCmdService) Start(ctx context.Context) (err error) {
 
 // Close resp service
 func (s *RespCmdService) Close() (err error) {
+	if s.rplSlave != nil {
+		s.rplSlave.Close()
+		s.rplSlave = nil
+	}
+
 	if s.replica != nil {
 		s.replica.Close()
 		s.replica = nil
@@ -154,6 +160,7 @@ func (s *RespCmdService) Close() (err error) {
 		s.snapshotStore = nil
 	}
 
+	// finanlly close resp cmd service
 	if s.RespCmdService != nil {
 		s.RespCmdService.Close()
 		s.RespCmdService = nil

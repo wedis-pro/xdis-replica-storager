@@ -262,13 +262,14 @@ func (r *Replication) replayLogToCommit() (err error) {
 		if err = r.wbatch.Commit(); err != nil {
 			klog.Errorf("commit log error %s", err.Error())
 		} else if err = r.UpdateCommitID(rl.ID); err != nil {
-			klog.Errorf("update commit id error %s", err.Error())
+			klog.Errorf("update commit id %d error %s", rl.ID, err.Error())
 		}
 		r.storager.GetCommitLock().Unlock()
 
 		if err != nil {
 			return err
 		}
+		klog.Debugf("update current commit logId %d ok", rl.ID)
 	}
 }
 
