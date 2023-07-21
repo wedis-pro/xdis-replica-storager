@@ -30,7 +30,11 @@ keyword:
 + LastLogID: the newest log id for a server.
 + CommitID: the last log committed to execute. If LastLogID is 10 and CommitID is 5, server needs to commit logs from 6 - 10 to catch the up to date status.
 
-slave replica connect state:
+slave replica connect state: 
+as the same redis role: https://redis.io/commands/role/
+
+The state of the replication from the point of view of the master, that can be *connect* (the instance needs to connect to its master), *connecting* (the master-replica connection is in progress), *sync* (the master and replica are trying to perform the synchronization), *connected* (the replica is online).
+
 * RplConnectState: slave needs to connect to its master
 * RplConnectingState: slave-master connection is in progress
 * RplSyncState: perform the synchronization
@@ -41,9 +45,12 @@ file:
 * store log file: replica store log (ILogStore impl eg: WAL)
 * snapshot file: replica snapshot file for fullsync, format [len(compress key) | compress key | len(compress value) | compress value ...]
 
-Notice:
+Notice (keep HA, need a HA failover mechanism, majority select master):
 * if master down, need HA failover server to select a new master role; then slave slaveof/replicaof master to sync log.
-* if store node auto HA failover, need some transport collaboration protocol to select a new leader like raft/paxos consistency protocol, then leader sync log to followers
+* if store node auto HA failover, need some transport collaboration protocol to select a new leader like raft/paxos consistency protocol, then leader sync log to followers, or like redsi cluster other majority masters use gossip protocol to select a master and notify other masters exchange meta message. 
+* a new master seleted (in term/epoch) has done, then notify proxy(codis) to promote
+
+so before do something, need think alternative (failover). `Don't put all your eggs in one basket`
 
 # reference
 * [ledisdb](https://github.com/ledisdb/ledisdb)
