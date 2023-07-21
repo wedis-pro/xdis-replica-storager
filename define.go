@@ -20,8 +20,6 @@ const (
 )
 
 var (
-	ErrNoInitRespConn = errors.New("not init resp conn")
-
 	ErrLogNotFound    = errors.New("log not found")
 	ErrLogMissed      = errors.New("log is pured in server")
 	ErrStoreLogID     = errors.New("log id is less")

@@ -53,4 +53,7 @@ Notice (keep HA, need a HA failover mechanism, majority select master):
 so before do something, need think alternative (failover). `Don't put all your eggs in one basket`
 
 # reference
+* [redis replication](https://redis.io/docs/management/replication/)
+* [redis sentinel](https://redis.io/docs/management/sentinel/)
+* [redis cluster scaling](https://redis.io/docs/management/scaling/)
 * [ledisdb](https://github.com/ledisdb/ledisdb)
