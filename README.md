@@ -52,6 +52,44 @@ Notice (keep HA, need a HA failover mechanism, majority select master):
 
 so before do something, need think alternative (failover). `Don't put all your eggs in one basket`
 
+# feature
+1. support redis sentinel to keep M/S replica HA failover
+   1. add pub/sub for `__sentinel__:hello` channel
+   2. support `info` cmd, add `Replication` section
+
+redis-sentinel log:
+```
+40717:X 22 Jul 2023 18:48:15.683 # Sentinel ID is ace6225b2a8faddaf6ad599a8db8b504e0ec2b9d
+40717:X 22 Jul 2023 18:48:15.683 # +monitor master mymaster 127.0.0.1 6666 quorum 1
+40717:X 22 Jul 2023 18:48:15.684 * +slave slave 127.0.0.1:6667 127.0.0.1 6667 @ mymaster 127.0.0.1 6666
+
+
+40717:X 22 Jul 2023 19:03:34.694 # +sdown master mymaster 127.0.0.1 6666
+40717:X 22 Jul 2023 19:03:34.694 # +odown master mymaster 127.0.0.1 6666 #quorum 1/1
+40717:X 22 Jul 2023 19:03:34.697 # +new-epoch 9
+40717:X 22 Jul 2023 19:03:34.697 # +try-failover master mymaster 127.0.0.1 6666
+40717:X 22 Jul 2023 19:03:34.702 # +vote-for-leader ace6225b2a8faddaf6ad599a8db8b504e0ec2b9d 9
+40717:X 22 Jul 2023 19:03:34.702 # +elected-leader master mymaster 127.0.0.1 6666
+40717:X 22 Jul 2023 19:03:34.702 # +failover-state-select-slave master mymaster 127.0.0.1 6666
+40717:X 22 Jul 2023 19:03:34.761 # +selected-slave slave 127.0.0.1:6667 127.0.0.1 6667 @ mymaster 127.0.0.1 6666
+40717:X 22 Jul 2023 19:03:34.761 * +failover-state-send-slaveof-noone slave 127.0.0.1:6667 127.0.0.1 6667 @ mymaster 127.0.0.1 6666
+40717:X 22 Jul 2023 19:03:34.852 * +failover-state-wait-promotion slave 127.0.0.1:6667 127.0.0.1 6667 @ mymaster 127.0.0.1 6666
+40717:X 22 Jul 2023 19:03:35.712 # +promoted-slave slave 127.0.0.1:6667 127.0.0.1 6667 @ mymaster 127.0.0.1 6666
+40717:X 22 Jul 2023 19:03:35.712 # +failover-state-reconf-slaves master mymaster 127.0.0.1 6666
+40717:X 22 Jul 2023 19:03:35.779 # +failover-end master mymaster 127.0.0.1 6666
+40717:X 22 Jul 2023 19:03:35.779 # +switch-master mymaster 127.0.0.1 6666 127.0.0.1 6667
+40717:X 22 Jul 2023 19:03:35.780 * +slave slave 127.0.0.1:6666 127.0.0.1 6666 @ mymaster 127.0.0.1 6667
+40717:X 22 Jul 2023 19:03:38.795 # +sdown slave 127.0.0.1:6666 127.0.0.1 6666 @ mymaster 127.0.0.1 6667
+
+
+40717:X 22 Jul 2023 19:28:23.578 # -sdown slave 127.0.0.1:6666 127.0.0.1 6666 @ mymaster 127.0.0.1 6667
+40717:X 22 Jul 2023 19:28:33.535 * +convert-to-slave slave 127.0.0.1:6666 127.0.0.1 6666 @ mymaster 127.0.0.1 6667
+```
+1. 127.0.0.1 6666 is master, 127.0.0.1 6667 replicaof it
+2. 127.0.0.1 6666 down, from sdown->odown, then vote to select leader to failover select master (send `replicaof no one` to 127.0.0.1 6667 become new master), then promot slave to master role, odown's old master become slave
+3. 127.0.0.1 6666 up, conver to slave, replicaof 127.0.0.1 6667
+
+use `info Replication` to check
 # reference
 * [redis replication](https://redis.io/docs/management/replication/)
 * [redis sentinel](https://redis.io/docs/management/sentinel/)
