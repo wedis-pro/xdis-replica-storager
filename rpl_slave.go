@@ -3,6 +3,7 @@ package replica
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"fmt"
 	"net"
 	"os"
@@ -272,8 +273,7 @@ func (m *ReplicaSlave) sync(ctx context.Context) error {
 	if len(buf) < 8 {
 		return fmt.Errorf("inavlid sync size %d", len(buf))
 	}
-
-	// todo: statics replica info
+	m.srv.rplSrvInfo.rplStats.MasterLastLogID.Store(binary.BigEndian.Uint64(buf))
 
 	buf = buf[8:]
 	if len(buf) == 0 {

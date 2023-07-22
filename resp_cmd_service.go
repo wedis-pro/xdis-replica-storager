@@ -31,6 +31,9 @@ type RespCmdService struct {
 	slock        sync.Mutex
 	slaves       map[string]*RespCmdConn
 	slaveSyncAck chan uint64
+
+	//rplSrvInfo repliaction info
+	rplSrvInfo *SrvInfo
 }
 
 var (
@@ -115,6 +118,8 @@ func (s *RespCmdService) OnClosed(conn redcon.Conn, err error) {
 
 // Start service set onAccept onClosed then start resp cmd service
 func (s *RespCmdService) Start(ctx context.Context) (err error) {
+	s.rplSrvInfo = NewSrvInfo(s)
+	s.SetSrvInfo(s.rplSrvInfo)
 	s.SetOnAccept(s.OnAccept)
 	s.SetOnClosed(s.OnClosed)
 	driver.MergeRegisteredCmdHandles(driver.RegisteredCmdHandles, driver.RegisteredReplicaCmdHandles, true)
@@ -150,6 +155,11 @@ func (s *RespCmdService) Close() (err error) {
 		s.rplSlave = nil
 	}
 
+	if s.RespCmdService != nil {
+		s.RespCmdService.Close()
+		s.RespCmdService = nil
+	}
+
 	if s.replica != nil {
 		s.replica.Close()
 		s.replica = nil
@@ -158,12 +168,6 @@ func (s *RespCmdService) Close() (err error) {
 	if s.snapshotStore != nil {
 		s.snapshotStore.Close()
 		s.snapshotStore = nil
-	}
-
-	// finanlly close resp cmd service
-	if s.RespCmdService != nil {
-		s.RespCmdService.Close()
-		s.RespCmdService = nil
 	}
 
 	return
@@ -220,6 +224,7 @@ func (s *RespCmdService) publishNewLog(l *Log) {
 		return
 	}
 
+	s.rplSrvInfo.rplStats.PubLogNum.Add(1)
 	s.slock.Lock()
 	slaveNum := len(s.slaves)
 	total := (slaveNum + 1) / 2
@@ -238,36 +243,36 @@ func (s *RespCmdService) publishNewLog(l *Log) {
 			klog.Errorf("invalid slave %s, lastlogid %d > %d", slave.slaveListeningAddr, lastLogID, logID)
 		}
 	}
-
 	s.slock.Unlock()
-
 	if n >= total {
 		//at least total slaves have owned this log
 		return
 	}
 
-	done := make(chan struct{}, 1)
-	go func() {
-		n := 0
-		for i := 0; i < slaveNum; i++ {
-			id := <-s.slaveSyncAck
-			if id < logID {
-				klog.Infof("some slave may close with last logid %d < %d", id, logID)
-			} else {
-				n++
-				if n >= total {
-					break
+	s.rplSrvInfo.rplStats.StaticsPubLogTotalAckTime(func() {
+		done := make(chan struct{}, 1)
+		go func() {
+			n := 0
+			for i := 0; i < slaveNum; i++ {
+				id := <-s.slaveSyncAck
+				if id < logID {
+					klog.Infof("some slave may close with last logid %d < %d", id, logID)
+				} else {
+					n++
+					if n >= total {
+						break
+					}
 				}
 			}
-		}
-		done <- struct{}{}
-	}()
+			done <- struct{}{}
+		}()
 
-	select {
-	case <-done:
-	case <-time.After(time.Duration(s.opts.ReplicaCfg.WaitSyncTime) * time.Millisecond):
-		klog.Info("replication wait timeout")
-	}
+		select {
+		case <-done:
+		case <-time.After(time.Duration(s.opts.ReplicaCfg.WaitSyncTime) * time.Millisecond):
+			klog.Info("replication wait timeout")
+		}
+	})
 }
 
 // replicaof

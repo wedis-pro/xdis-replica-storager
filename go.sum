@@ -188,12 +188,12 @@ github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2
 github.com/v2pro/plz v0.0.0-20221028024117-e5f9aec5b631/go.mod h1:3gacX+hQo+xvl0vtLqCMufzxuNCwt4geAVOMt2LQYfE=
 github.com/v2pro/quokka v0.0.0-20171201153428-382cb39c6ee6/go.mod h1:0VP5W9AFNVWU8C1QLNeVg8TvzoEkIHWZ4vxtxEVFWUY=
 github.com/v2pro/wombat v0.0.0-20180402055224-a56dbdcddef2/go.mod h1:wen8nMxrRrUmXnRwH+3wGAW+hyYTHcOrTNhMpxyp/i0=
-github.com/weedge/pkg v0.0.0-20230719122409-952559a3c29e h1:om+e5xHlv55vfDAva0eJgafhj89ZTzE2V4mMoQyLDUE=
-github.com/weedge/pkg v0.0.0-20230719122409-952559a3c29e/go.mod h1:NG9utb9o+HdJOKXv/DIy+jxlxgoYisiSv9FJtRn2kLM=
+github.com/weedge/pkg v0.0.0-20230722103912-dd4731accffd h1:FPTuLjTaqzB+a+VlpjjgEqbF7x9G1zs9Z5SB/WfvB7A=
+github.com/weedge/pkg v0.0.0-20230722103912-dd4731accffd/go.mod h1:NG9utb9o+HdJOKXv/DIy+jxlxgoYisiSv9FJtRn2kLM=
 github.com/weedge/redcon v0.0.0-20230717070621-d58434c2f821 h1:bRy+D19MDn+EPdiZ18BAcaT/mfZhn+a4JHSrBovwh8M=
 github.com/weedge/redcon v0.0.0-20230717070621-d58434c2f821/go.mod h1:p5Wbsgeyi2VSTBWOcA5vRXrOb9arFTcU2+ZzFjqV75Y=
-github.com/weedge/xdis-standalone v0.0.0-20230721173520-56ce95625942 h1:7pk41fQR4giGUR9SmDgzwPzBaK2XqBd4lnqqGHqBTV4=
-github.com/weedge/xdis-standalone v0.0.0-20230721173520-56ce95625942/go.mod h1:JQzYNqja6ptUyVrW9c0ywLTGG/KhqyJswWxSCTue1Z0=
+github.com/weedge/xdis-standalone v0.0.0-20230722104237-7f537b51d83c h1:yLfCZ20/96IMYev3dKCWlyiONcYMNS37iX1XH6P8pvE=
+github.com/weedge/xdis-standalone v0.0.0-20230722104237-7f537b51d83c/go.mod h1:KmE3N0ROq9c17SSEdBWeK6eoPGLcd7ue/ZVY/jW6l00=
 github.com/weedge/xdis-storager v0.0.0-20230719122548-21330058538e h1:51r6MsRBMEBAcig0KlyT17JY45YOToLFSiP+HbDZez0=
 github.com/weedge/xdis-storager v0.0.0-20230719122548-21330058538e/go.mod h1:QkTU6yTo6OodmYxXg5FPBQOfcAd7GA1iII1EPL1lJ/A=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

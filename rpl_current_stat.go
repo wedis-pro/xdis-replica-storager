@@ -9,13 +9,11 @@ type Stat struct {
 	CommitID uint64
 }
 
-func (r *Replication) Stat() (*Stat, error) {
+func (r *Replication) Stat() (s *Stat, err error) {
 	r.Lock()
 	defer r.Unlock()
 
-	s := &Stat{}
-	var err error
-
+	s = &Stat{}
 	if s.FirstID, err = r.logStore.FirstID(); err != nil {
 		return nil, err
 	}

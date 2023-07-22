@@ -6,6 +6,8 @@ const (
 	InvalidLogID uint64 = 0
 
 	MaxReplLogSize = 1 * 1024 * 1024
+
+	DefaultSlavePriority = 100
 )
 
 const (
