@@ -32,3 +32,7 @@ var (
 	ErrRplInRDWR     = errors.New("replication not support in read write mode")
 	ErrRplNotSupport = errors.New("replication not support")
 )
+
+const (
+	MaxSlotNum = 1024
+)
