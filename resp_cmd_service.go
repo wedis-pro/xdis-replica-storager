@@ -125,10 +125,6 @@ func (s *RespCmdService) Start(ctx context.Context) (err error) {
 	driver.MergeRegisteredCmdHandles(driver.RegisteredCmdHandles, driver.RegisteredReplicaCmdHandles, true)
 	s.SetRegisteredCmdHandles(driver.RegisteredReplicaCmdHandles)
 
-	if err = s.RespCmdService.Start(ctx); err != nil {
-		return
-	}
-
 	s.replica.AddNewLogEventHandler(s.publishNewLog)
 	if err = s.RegisterLogStore(); err != nil {
 		return
@@ -137,11 +133,16 @@ func (s *RespCmdService) Start(ctx context.Context) (err error) {
 		return
 	}
 
+	if err = s.snapshotStore.Open(ctx); err != nil {
+		return
+	}
+
 	if len(s.opts.ReplicaCfg.ReplicaOf) > 0 {
 		s.replicaof(ctx, s.opts.ReplicaCfg.ReplicaOf, false, s.opts.ReplicaCfg.Readonly)
 	}
 
-	if err = s.snapshotStore.Open(ctx); err != nil {
+	// info repliation need logstore open, so need finally start service
+	if err = s.RespCmdService.Start(ctx); err != nil {
 		return
 	}
 
