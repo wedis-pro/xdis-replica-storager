@@ -6,9 +6,9 @@ require (
 	github.com/cloudwego/kitex v0.6.1
 	github.com/golang/snappy v0.0.4
 	github.com/tidwall/redcon v1.6.2
-	github.com/weedge/pkg v0.0.0-20230725030031-e699e06784f3
-	github.com/weedge/xdis-standalone v0.0.0-20230725030134-26ab7d284f3f
-	github.com/weedge/xdis-storager v0.0.0-20230719122548-21330058538e
+	github.com/weedge/pkg v0.0.0-20230727152516-69a060bfa303
+	github.com/weedge/xdis-standalone v0.0.0-20230727163937-262eaa4dfff0
+	github.com/weedge/xdis-storager v0.0.0-20230727163616-8c3c2c49d8a3
 )
 
 require (
@@ -22,6 +22,8 @@ require (
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tidwall/btree v1.6.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
+	github.com/twmb/murmur3 v1.1.8 // indirect
+	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43 // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect

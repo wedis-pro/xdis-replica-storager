@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/weedge/pkg/driver"
 	standalone "github.com/weedge/xdis-standalone"
 )
 
@@ -38,13 +39,13 @@ func NewSrvInfo(srv *RespCmdService) (srvInfo *SrvInfo) {
 	srvInfo.SrvInfo = standalone.NewSrvInfo(srv.RespCmdService)
 	srvInfo.rplStats = &RplStats{}
 
-	standalone.RegisterDumpHandler("replication", srvInfo.DumpReplication)
+	driver.RegisterDumpHandler("replication", srvInfo.DumpReplication)
 
 	return
 }
 
 func (m *SrvInfo) DumpReplication(w io.Writer) {
-	p := []standalone.InfoPair{}
+	p := []driver.InfoPair{}
 
 	m.srv.rplSlave.Lock()
 	slaveof := m.srv.opts.ReplicaCfg.ReplicaOf
@@ -55,7 +56,7 @@ func (m *SrvInfo) DumpReplication(w io.Writer) {
 	s, _ := m.srv.replica.Stat()
 	isSlave := len(slaveof) > 0
 	if !isSlave { //master
-		p = append(p, standalone.InfoPair{Key: "role", Value: "master"})
+		p = append(p, driver.InfoPair{Key: "role", Value: "master"})
 
 		length := len(m.srv.slaves)
 		slaves := make([]string, 0, length)
@@ -70,7 +71,7 @@ func (m *SrvInfo) DumpReplication(w io.Writer) {
 		}
 		m.srv.slock.Unlock()
 
-		p = append(p, standalone.InfoPair{Key: "connected_slaves", Value: length})
+		p = append(p, driver.InfoPair{Key: "connected_slaves", Value: length})
 		for i := range slaves {
 			host, port, _ := net.SplitHostPort(slaves[i])
 			state := "online"
@@ -81,63 +82,63 @@ func (m *SrvInfo) DumpReplication(w io.Writer) {
 				"ip=%s,port=%s,state=%s,last_sync_id=%d,lag=%d",
 				host, port, state, lastSynIds[i], s.LastID-lastSynIds[i],
 			)
-			p = append(p, standalone.InfoPair{Key: fmt.Sprintf("slave%d", i), Value: val})
+			p = append(p, driver.InfoPair{Key: fmt.Sprintf("slave%d", i), Value: val})
 		}
-		//p = append(p, standalone.InfoPair{Key: "slaves", Value: strings.Join(slaves, ",")})
+		//p = append(p, driver.InfoPair{Key: "slaves", Value: strings.Join(slaves, ",")})
 	} else { // slave
-		p = append(p, standalone.InfoPair{Key: "role", Value: "slave"})
+		p = append(p, driver.InfoPair{Key: "role", Value: "slave"})
 
 		// add some redis slave replication info for outer failover service :-)
 		host, port, _ := net.SplitHostPort(slaveof)
-		p = append(p, standalone.InfoPair{Key: "master_host", Value: host})
-		p = append(p, standalone.InfoPair{Key: "master_port", Value: port})
+		p = append(p, driver.InfoPair{Key: "master_host", Value: host})
+		p = append(p, driver.InfoPair{Key: "master_port", Value: port})
 		state := m.srv.rplSlave.state.Load()
 		if state == RplSyncState || state == RplConnectedState {
-			p = append(p, standalone.InfoPair{Key: "master_link_status", Value: "up"})
+			p = append(p, driver.InfoPair{Key: "master_link_status", Value: "up"})
 		} else {
-			p = append(p, standalone.InfoPair{Key: "master_link_status", Value: "down"})
+			p = append(p, driver.InfoPair{Key: "master_link_status", Value: "down"})
 		}
 
 		// here, all the slaves have same priority now
-		p = append(p, standalone.InfoPair{Key: "slave_priority", Value: DefaultSlavePriority})
+		p = append(p, driver.InfoPair{Key: "slave_priority", Value: DefaultSlavePriority})
 		readOnly := 0
 		if m.srv.opts.ReplicaCfg.GetReadonly() {
 			readOnly = 1
 		}
-		p = append(p, standalone.InfoPair{Key: "slave_read_only", Value: readOnly})
+		p = append(p, driver.InfoPair{Key: "slave_read_only", Value: readOnly})
 
 		if s != nil {
 			if s.LastID > 0 {
-				p = append(p, standalone.InfoPair{Key: "slave_repl_offset", Value: s.LastID})
+				p = append(p, driver.InfoPair{Key: "slave_repl_offset", Value: s.LastID})
 			} else {
-				p = append(p, standalone.InfoPair{Key: "slave_repl_offset", Value: s.CommitID})
+				p = append(p, driver.InfoPair{Key: "slave_repl_offset", Value: s.CommitID})
 			}
 		} else {
-			p = append(p, standalone.InfoPair{Key: "slave_repl_offset", Value: 0})
+			p = append(p, driver.InfoPair{Key: "slave_repl_offset", Value: 0})
 		}
 	}
 
 	num := m.rplStats.PubLogNum.Load()
-	p = append(p, standalone.InfoPair{Key: "pub_log_num", Value: num})
+	p = append(p, driver.InfoPair{Key: "pub_log_num", Value: num})
 
 	ackNum := m.rplStats.PubLogAckNum.Load()
 	totalTime := m.rplStats.PubLogTotalAckTimeMs.Load()
 	if ackNum != 0 {
-		p = append(p, standalone.InfoPair{Key: "pub_log_ack_per_time", Value: totalTime / ackNum})
+		p = append(p, driver.InfoPair{Key: "pub_log_ack_per_time", Value: totalTime / ackNum})
 	} else {
-		p = append(p, standalone.InfoPair{Key: "pub_log_ack_per_time", Value: 0})
+		p = append(p, driver.InfoPair{Key: "pub_log_ack_per_time", Value: 0})
 	}
 
 	if s != nil {
-		p = append(p, standalone.InfoPair{Key: "last_log_id", Value: s.LastID})
-		p = append(p, standalone.InfoPair{Key: "first_log_id", Value: s.FirstID})
-		p = append(p, standalone.InfoPair{Key: "commit_log_id", Value: s.CommitID})
+		p = append(p, driver.InfoPair{Key: "last_log_id", Value: s.LastID})
+		p = append(p, driver.InfoPair{Key: "first_log_id", Value: s.FirstID})
+		p = append(p, driver.InfoPair{Key: "commit_log_id", Value: s.CommitID})
 	} else {
-		p = append(p, standalone.InfoPair{Key: "last_log_id", Value: 0})
-		p = append(p, standalone.InfoPair{Key: "first_log_id", Value: 0})
-		p = append(p, standalone.InfoPair{Key: "commit_log_id", Value: 0})
+		p = append(p, driver.InfoPair{Key: "last_log_id", Value: 0})
+		p = append(p, driver.InfoPair{Key: "first_log_id", Value: 0})
+		p = append(p, driver.InfoPair{Key: "commit_log_id", Value: 0})
 	}
-	p = append(p, standalone.InfoPair{Key: "master_last_log_id", Value: masterLastLogId})
+	p = append(p, driver.InfoPair{Key: "master_last_log_id", Value: masterLastLogId})
 
 	m.DumpPairs(w, p...)
 }
