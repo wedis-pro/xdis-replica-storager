@@ -7,7 +7,7 @@ require (
 	github.com/golang/snappy v0.0.4
 	github.com/tidwall/redcon v1.6.2
 	github.com/weedge/pkg v0.0.0-20230730143941-947a71ed5c56
-	github.com/weedge/xdis-standalone v0.0.0-20230730152837-0e93c181589f
+	github.com/weedge/xdis-standalone v0.0.0-20230730162632-3f064925c20d
 	github.com/weedge/xdis-storager v0.0.0-20230730111225-a7698fb47c92
 )
 
