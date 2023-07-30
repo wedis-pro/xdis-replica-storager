@@ -203,12 +203,12 @@ github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43/go.mod h1:O
 github.com/v2pro/plz v0.0.0-20221028024117-e5f9aec5b631/go.mod h1:3gacX+hQo+xvl0vtLqCMufzxuNCwt4geAVOMt2LQYfE=
 github.com/v2pro/quokka v0.0.0-20171201153428-382cb39c6ee6/go.mod h1:0VP5W9AFNVWU8C1QLNeVg8TvzoEkIHWZ4vxtxEVFWUY=
 github.com/v2pro/wombat v0.0.0-20180402055224-a56dbdcddef2/go.mod h1:wen8nMxrRrUmXnRwH+3wGAW+hyYTHcOrTNhMpxyp/i0=
-github.com/weedge/pkg v0.0.0-20230730110910-2af194257737 h1:xgPqvITEZnRzD7UcUM/pgaRDQKJDRDr3blDdpFKcCLo=
-github.com/weedge/pkg v0.0.0-20230730110910-2af194257737/go.mod h1:TDYMBh/YbsOIk+m0KCeys36y98DoWTpTMYa8BfHOB/0=
+github.com/weedge/pkg v0.0.0-20230730143941-947a71ed5c56 h1:dff0/aWU3NOcA02EQXrCaZYLr4vCx7FZqFKJ6zmbY0s=
+github.com/weedge/pkg v0.0.0-20230730143941-947a71ed5c56/go.mod h1:TDYMBh/YbsOIk+m0KCeys36y98DoWTpTMYa8BfHOB/0=
 github.com/weedge/redcon v0.0.0-20230717070621-d58434c2f821 h1:bRy+D19MDn+EPdiZ18BAcaT/mfZhn+a4JHSrBovwh8M=
 github.com/weedge/redcon v0.0.0-20230717070621-d58434c2f821/go.mod h1:p5Wbsgeyi2VSTBWOcA5vRXrOb9arFTcU2+ZzFjqV75Y=
-github.com/weedge/xdis-standalone v0.0.0-20230730111418-fbb5ea61ae63 h1:Ie0qs3Uz/iy/8KWoyMp2vEVuZr7pCpvbTyY7cfa9Xwg=
-github.com/weedge/xdis-standalone v0.0.0-20230730111418-fbb5ea61ae63/go.mod h1:rmrDA9W/hH5fM+Xlfd0RkBRd891IiyG8mm1ewOysRic=
+github.com/weedge/xdis-standalone v0.0.0-20230730152837-0e93c181589f h1:btdDCaRy4nTdvZ3BXgoVPehC9B9C/M0t2GeRqw1Ov2s=
+github.com/weedge/xdis-standalone v0.0.0-20230730152837-0e93c181589f/go.mod h1:f83VM3qyK5cO88tpziw5tu7kDKaQXOy/hpmbajwvlIQ=
 github.com/weedge/xdis-storager v0.0.0-20230730111225-a7698fb47c92 h1:FoDTyuPkD1r3dybp85uQEJmed21lzq8pp7u79SGS7Pc=
 github.com/weedge/xdis-storager v0.0.0-20230730111225-a7698fb47c92/go.mod h1:8ySjc1pjYsnblCpxQH5FXvx46dNG3Fd76yMRQ5R2z8M=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

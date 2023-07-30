@@ -6,8 +6,8 @@ require (
 	github.com/cloudwego/kitex v0.6.1
 	github.com/golang/snappy v0.0.4
 	github.com/tidwall/redcon v1.6.2
-	github.com/weedge/pkg v0.0.0-20230730110910-2af194257737
-	github.com/weedge/xdis-standalone v0.0.0-20230730111418-fbb5ea61ae63
+	github.com/weedge/pkg v0.0.0-20230730143941-947a71ed5c56
+	github.com/weedge/xdis-standalone v0.0.0-20230730152837-0e93c181589f
 	github.com/weedge/xdis-storager v0.0.0-20230730111225-a7698fb47c92
 )
 

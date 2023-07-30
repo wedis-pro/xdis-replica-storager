@@ -31,7 +31,7 @@ type Replication struct {
 	// commit log recode current commited logId
 	commitLog *CommitLog
 
-	// todo IStorager
+	// todo IStorager <- IReplicaStorager @weedge
 	// storager to save kv data
 	storager *storager.Storager
 
